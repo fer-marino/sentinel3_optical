@@ -1,4 +1,4 @@
-from numpy import float32, zeros
+from numpy import float32, zeros, uint16
 from scipy.misc import imsave
 from skimage import exposure
 from time import time
@@ -28,7 +28,7 @@ def process(product):
 
     # initialize image
     img = zeros((height, width, 3), dtype=float32)
-    img_raw = zeros((height, width, 3), dtype=float32)
+    img_raw = zeros((height, width, 3), dtype=uint16)
 
     # Set the RGB values
     print("Processing started. Dimension w:{w:d} h:{h:d}".format(w=width, h=height))
@@ -40,38 +40,40 @@ def process(product):
             counter += 1
             if not math.isnan(detector_index[y][x]):
                 detector = int(detector_index[y][x])
-                angle = sza[y][int(x/64)]
-                sol_flux_red = solar_flux[9][detector]      # band 10 for red, has index 9
-                sol_flux_green = solar_flux[4][detector]    # band 5 for green, has index 4
-                sol_flux_blue = solar_flux[2][detector]     # band 3 for blue, has index 2
+                angle = sza[y][int(x / 64)]
+                sol_flux_red = solar_flux[9][detector]  # band 10 for red, has index 9
+                sol_flux_green = solar_flux[4][detector]  # band 5 for green, has index 4
+                sol_flux_blue = solar_flux[2][detector]  # band 3 for blue, has index 2
 
-                img[y][x][0] = math.pi * (red[y][x] / sol_flux_red) / math.cos(math.radians(angle))
-                img[y][x][1] = math.pi * (green[y][x] / sol_flux_green) / math.cos(math.radians(angle))
-                img[y][x][2] = math.pi * (blue[y][x] / sol_flux_blue) / math.cos(math.radians(angle))
+                img[y][x][0] = max(0, min(1., math.pi * (red[y][x] / sol_flux_red) / math.cos(math.radians(angle))))*2 -1
+                img[y][x][1] = max(0, min(1., math.pi * (green[y][x] / sol_flux_green) / math.cos(math.radians(angle))))*2 -1
+                img[y][x][2] = max(0, min(1., math.pi * (blue[y][x] / sol_flux_blue) / math.cos(math.radians(angle))))*2 -1
 
                 img_raw[y][x][0] = red[y][x]
                 img_raw[y][x][1] = green[y][x]
                 img_raw[y][x][2] = blue[y][x]
 
         if time() - perf_time > 30:
-            print(" * * Processing row {row:d} {perc:.3f}% - Pixel per seconds: {perf:d}".format(row=y, perc=(y/height)*100, perf=int(counter / (
-            time() - perf_time))))
+            print(" * * Processing row {row:d} {perc:.3f}% - Pixel per seconds: {perf:d}".format(row=y, perc=(
+                                                                                                             y / height) * 100,
+                                                                                                 perf=int(counter / (
+                                                                                                 time() - perf_time))))
             counter = 0
             perf_time = time()
 
     print("Processing finished in {perf:.2f} seconds ".format(perf=(time() - start_time)))
 
     print("Saving raw...")
-    imsave(product + "/toa_reflectance.png", img)
+    imsave(product + "/toa_reflectance.jpg", img)
     # adjust contrast
     print("Equalizing...")
     start_time = time()
-    img_equalized = exposure.equalize_hist(img, nbins=1024)
-    img_equalized_raw = exposure.equalize_hist(img_raw, nbins=1024)
+    img_equalized = exposure.equalize_hist(img, nbins=512)
+    img_equalized_raw = exposure.equalize_hist(img_raw, nbins=512)
 
     # Save the image
-    imsave(product + "/toa_equalized.png", img_equalized)
-    imsave(product + "/radiance_equalized.png", img_equalized_raw)
+    imsave(product + "/toa_reflectance_equalized.jpg", img_equalized)
+    imsave(product + "/radiance_equalized.jpg", img_equalized_raw)
     print("done in {perf:.2f} seconds ".format(perf=(time() - start_time)))
 
 
