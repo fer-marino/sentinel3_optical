@@ -13,6 +13,7 @@ distance between different data acquisition dates.
 
 The TOA reflectance of the Earth is computed according to the equation:
 
+![TOA Formula](http://bit.ly/2ojmQUt)
  \rho_{ \lambda } =  \frac {\pi * L_{\lambda} * d^2}{ESUN_{\lambda} * \ \theta_{\lambda} } 
 
 where
