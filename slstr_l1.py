@@ -52,9 +52,9 @@ def process(product):
                 s1_reflectance = max(0, min(1., math.pi * (
                 s1_an[y][x] / solar_irradiance_s1[int(detectors[y][x])]) / math.cos(math.radians(sza_corrected))))
 
-                img[y][x][0] = min(1, (s3_reflectance + s5_reflectance) / 2) * 2 - 1
-                img[y][x][1] = min(1, s3_reflectance) *2 -1
-                img[y][x][2] = min(1, (s3_reflectance + s1_reflectance) / 2) * 2 - 1
+                img[y][x][0] = min(1, (s3_reflectance + s5_reflectance) / 2)
+                img[y][x][1] = min(1, s3_reflectance)
+                img[y][x][2] = min(1, (s3_reflectance + s1_reflectance) / 2)
 
                 img_raw[y][x][0] = (s3_an[y][x] + s5_an[y][x]) / 2
                 img_raw[y][x][1] = s3_an[y][x]
@@ -78,10 +78,10 @@ def process(product):
     img_equalized = exposure.equalize_hist(img, nbins=512)
     imsave(product + "/toa_equalized.jpg", img_equalized)
     img_equalized_raw = exposure.equalize_hist(img_raw, nbins=512)
-
-    # Save the image
     imsave(product + "/radiance_equalized.jpg", img_equalized_raw)
     print("done in {perf:.2f} seconds ".format(perf=(time() - start_time)))
+    img_clahe = exposure.equalize_adapthist(img, nbins=512)
+    imsave(product + "/radiance_clahe.jpg", img_clahe)
 
 
 if __name__ == "__main__":

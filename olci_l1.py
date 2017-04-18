@@ -45,9 +45,9 @@ def process(product):
                 sol_flux_green = solar_flux[4][detector]  # band 5 for green, has index 4
                 sol_flux_blue = solar_flux[2][detector]  # band 3 for blue, has index 2
 
-                img[y][x][0] = max(0, min(1., math.pi * (red[y][x] / sol_flux_red) / math.cos(math.radians(angle))))*2 -1
-                img[y][x][1] = max(0, min(1., math.pi * (green[y][x] / sol_flux_green) / math.cos(math.radians(angle))))*2 -1
-                img[y][x][2] = max(0, min(1., math.pi * (blue[y][x] / sol_flux_blue) / math.cos(math.radians(angle))))*2 -1
+                img[y][x][0] = max(0, min(1., math.pi * (red[y][x] / sol_flux_red) / math.cos(math.radians(angle))))
+                img[y][x][1] = max(0, min(1., math.pi * (green[y][x] / sol_flux_green) / math.cos(math.radians(angle))))
+                img[y][x][2] = max(0, min(1., math.pi * (blue[y][x] / sol_flux_blue) / math.cos(math.radians(angle))))
 
                 img_raw[y][x][0] = red[y][x]
                 img_raw[y][x][1] = green[y][x]
@@ -75,6 +75,9 @@ def process(product):
     imsave(product + "/toa_reflectance_equalized.jpg", img_equalized)
     imsave(product + "/radiance_equalized.jpg", img_equalized_raw)
     print("done in {perf:.2f} seconds ".format(perf=(time() - start_time)))
+
+    img_clahe = exposure.equalize_adapthist(img, nbins=512)
+    imsave(product + "/radiance_clahe.jpg", img_clahe)
 
 
 if __name__ == "__main__":
